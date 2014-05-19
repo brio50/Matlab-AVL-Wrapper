@@ -42,41 +42,41 @@ while ischar(tline)
             
             % Read Mach
             temp_mach = textscan(tline,'%f');
-            input.avl.header.Mach = temp_mach{1};
+            input.avl.Mach = temp_mach{1};
             clear temp_mach
             
         elseif eval_num == 3
             
             % Read iYsym, iZsym, Zsym
             temp_sym = textscan(tline,'%f %f %f');
-            input.avl.header.iYsym     = temp_sym{1};
-            input.avl.header.iZsym     = temp_sym{2};
-            input.avl.header.Zsym      = temp_sym{3};
+            input.avl.iYsym     = temp_sym{1};
+            input.avl.iZsym     = temp_sym{2};
+            input.avl.Zsym      = temp_sym{3};
             clear temp_sym
             
         elseif eval_num == 4
             
             % Read Sref, Cref, Bref
             temp_ref = textscan(tline,'%f %f %f');
-            input.avl.header.Sref      = temp_ref{1};
-            input.avl.header.Cref      = temp_ref{2};
-            input.avl.header.Bref      = temp_ref{3};
+            input.avl.Sref      = temp_ref{1};
+            input.avl.Cref      = temp_ref{2};
+            input.avl.Bref      = temp_ref{3};
             clear temp_ref
             
         elseif eval_num == 5
             
             % Read [X,Y,Z]ref
             temp_cg = textscan(tline,'%f %f %f');
-            input.avl.header.Xref      = temp_cg{1};
-            input.avl.header.Yref      = temp_cg{2};
-            input.avl.header.Zref      = temp_cg{3};
+            input.avl.Xref      = temp_cg{1};
+            input.avl.Yref      = temp_cg{2};
+            input.avl.Zref      = temp_cg{3};
             clear temp_cg
             
         elseif eval_num == 6
             
             % Read CDoref
             temp_cDo = textscan(tline,'%f');
-            input.avl.header.CDoref    = temp_cDo{1};
+            input.avl.CDoref    = temp_cDo{1};
             clear temp_cDo
             
         elseif strcmpi(tline,'BODY')
@@ -335,6 +335,10 @@ while ischar(tline)
             input.avl.surface.(surf_name).CONTROL.XYZhvec(ctrl_num,sect_num) = temp_ctrl{4};
             input.avl.surface.(surf_name).CONTROL.SgnDup(ctrl_num,sect_num)  = temp_ctrl{5};
             clear temp_ctrl
+            
+            input.avl.surface.(surf_name).CONTROL.Xle(ctrl_num,sect_num) = input.avl.surface.(surf_name).SECTION.Xle(1,sect_num);
+            input.avl.surface.(surf_name).CONTROL.Yle(ctrl_num,sect_num) = input.avl.surface.(surf_name).SECTION.Yle(1,sect_num);
+            input.avl.surface.(surf_name).CONTROL.Zle(ctrl_num,sect_num) = input.avl.surface.(surf_name).SECTION.Zle(1,sect_num);
             
         elseif strcmpi(tline,'CLAF')
             

@@ -42,9 +42,9 @@ figure %('Color',[0 0 0])
 hold all
 
 % Place CG Marker
-XCG = input.header.Xref;
-YCG = input.header.Yref;
-ZCG = input.header.Zref;
+XCG = input.Xref;
+YCG = input.Yref;
+ZCG = input.Zref;
 plot3(XCG,YCG,ZCG,'.k','MarkerSize',20)
 
     surfaces = fieldnames(input.surface);
@@ -119,17 +119,17 @@ plot3(XCG,YCG,ZCG,'.k','MarkerSize',20)
         
     end
         
-    ORIGIN = min(str2num(get(gca,'YTickLabel')));
-    keyboard
-    % Arrow Shaft
-    plot3(ORIGIN+[0 5],ORIGIN+[0 0],ORIGIN+[0 0],'-r')
-    plot3(ORIGIN+[0 0],ORIGIN+[0 5],ORIGIN+[0 0],'-r')
-    plot3(ORIGIN+[0 0],ORIGIN+[0 0],ORIGIN+[0 5],'-r')
+    ORIGIN = min(str2num(get(gca,'YTickLabel')))*1.2;
     
-    % Arrow Head
-%     plot3(5,0,0,'.r','MarkerSize',20)
-%     plot3(0,5,0,'.r','MarkerSize',20)
-%     plot3(0,0,5,'.r','MarkerSize',20)
+    % Arrow Shaft
+    plot3([0 5],ORIGIN+[0 0],[0 0],'-r')
+    plot3([0 0],ORIGIN+[0 5],[0 0],'-r')
+    plot3([0 0],ORIGIN+[0 0],[0 5],'-r')
+    
+    % Labels
+    text(7,ORIGIN,0,    'X','Color','r')
+    text(0,ORIGIN+7,0,  'Y','Color','r')
+    text(0,ORIGIN,7,    'Z','Color','r')
     
 else
     error('Unrecognized method.')

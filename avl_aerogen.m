@@ -1,24 +1,21 @@
 % AVL Aero Generation
 %
 % $Author:  Brian Borra $
-% $Rev:     1.0         $
-% $Date:    03/06/2013  $
+% $Rev:     1.1         $
+% $Date:    05/18/2014  $
 
 %% Initialization
-clc, clear all, %close all, format compact
-% cd(['C:\Users\' getenv('username') '\Desktop\avl332'])
+clc, clear all, close all, format compact
 
 %% File Setup
-avlFileName = 'bd.avl';                         %TODO: dir(*.avl)
-% avlFileName = 'test.avl'
-fileName    = regexprep(avlFileName,'.avl','');
-dirName     = fileName;
+avlFileName = './avl/bd.avl';                         %TODO: dir(*.avl)
+[path,name,ext] = fileparts(avlFileName);
 
-if ~exist(dirName,'dir')
-    mkdir(dirName)
-    fprintf('%-20s %s\n','Setup:',['Directory ''' dirName ''' Made']);
+if ~exist(['./out/' name],'dir')
+    mkdir(['./out/' name])
+    fprintf('%-20s %s\n','Setup:',['Directory ''' ['./out/' name] ''' Made']);
 else
-    fprintf('%-20s %s\n','Setup:',['Directory ''' dirName ''' Exists']);    
+    fprintf('%-20s %s\n','Setup:',['Directory ''' ['./out/' name] ''' Exists']);    
 end
 
 %% Validate AVL File
@@ -31,49 +28,33 @@ input = avl_fileread(avlFileName);
 %% Plot Geometry using AVL
 % avl_fileplot('avl')
 avl_fileplot(input.avl,'matlab')
-keyboard
 
 %% Run Setup
 sweep.alpha     = -4:4:4;   %alpha 
 sweep.beta      = -6:6:6;   %beta
-% sweep.surf.one  = -2:2:2;   %surfaces - to be designated per surface in GUI
+sweep.surf      = -2:2:2;   %surfaces - to be designated per surface in GUI
 % sweep.surf.two  = -2:2:2;
 
 % Search for surfaces with CONTROL 
-
 surfNames = fieldnames(input.avl.surface);
 nSurf = length(surfNames);
 
+cnt = 1;
 for iSurf = 1:nSurf
     if isfield(input.avl.surface.(surfNames{iSurf}),'CONTROL')
-        CTRL = input.avl.surface.(surfNames{iSurf}).CONTROL.Name;
-        [m,n] = size(CTRL);
-        
-        for row = 1:m
-            
-            temp = vertcat(CTRL{row,:}); % concatenate vertically
-            if row == 2
-                keyboard
-            end
-            for col = 1:n-1
-%                 if ~isempty(temp{col,:})
-                    wtf(row,col) = strcmp(temp(col,:),temp(col+1,:)) 
-%                 else
-%                     wtf(row,col) = 0;
-%                 end
-            end
-        end
-        
-%         for iCtrl = 1:nCtrl-1
-%             if strcmpi(ctrlNames{iCtrl},ctrlNames{iCtrl+1})
-%                 temp.(surfNames{iSurf}).surfMatch(iCtrl)    = 1;
-%                 temp.(surfNames{iSurf}).surfMatch(iCtrl+1)  = 1;
-%             else
-%                 temp.(surfNames{iSurf}).surfMatch(iCtrl)    = 0;
-%                 temp.(surfNames{iSurf}).surfMatch(iCtrl+1)  = 0;
-%             end
-%         end
+        ctrlNames(cnt) = unique(input.avl.surface.(surfNames{iSurf}).CONTROL.Name);
+        cnt = cnt+1;
     end
+    
+%     for iCtrl = 1:nCtrl-1
+%         if strcmpi(ctrlNames{iCtrl},ctrlNames{iCtrl+1})
+%             temp.(surfNames{iSurf}).surfMatch(iCtrl)    = 1;
+%             temp.(surfNames{iSurf}).surfMatch(iCtrl+1)  = 1;
+%         else
+%             temp.(surfNames{iSurf}).surfMatch(iCtrl)    = 0;
+%             temp.(surfNames{iSurf}).surfMatch(iCtrl+1)  = 0;
+%         end
+%     end
 end
 
 %% Read .RUN File
@@ -99,7 +80,7 @@ input.mass.Tunit    = 'Tunit'; %'s'
 % Space before parameter name is necessary, same with spacing for run names 
 
 % Open the file with write permissions, flush existing content
-fid = fopen('reset.txt', 'w');
+fid = fopen('tmp/reset.txt', 'w');
 
 fprintf(fid,' \n');
 fprintf(fid,' ---------------------------------------------\n');
@@ -120,18 +101,18 @@ fprintf(fid,' %-10s=   %.5f     %s\n','qc/2V',      0,                  '');
 fprintf(fid,' %-10s=   %.5f     %s\n','rb/2V',      0,                  '');
 fprintf(fid,' %-10s=   %.5f     %s\n','CL',         0,                  '');
 fprintf(fid,' %-10s=   %.5f     %s\n','CDo',        input.avl.CDoref,   '');
-fprintf(fid,' %-10s=   %.5f     %s\n','bank',       input.avl.bank,     'deg');  
-fprintf(fid,' %-10s=   %.5f     %s\n','elevation',  input.avl.elevation,'deg');
-fprintf(fid,' %-10s=   %.5f     %s\n','heading',    input.avl.heading,  'deg');
-fprintf(fid,' %-10s=   %.5f     %s\n','Mach',       input.avl.mach,     '');
-fprintf(fid,' %-10s=   %.5f     %s\n','velocity',   input.avl.velocity, [input.mass.Lunit '/' input.mass.Tunit]);
-fprintf(fid,' %-10s=   %.5f     %s\n','density',    input.avl.rho,      [input.mass.Munit '/' input.mass.Tunit '^3']);
-fprintf(fid,' %-10s=   %.5f     %s\n','grav.acc.',  input.avl.g,        [input.mass.Lunit '/' input.mass.Tunit '^2']);
-fprintf(fid,' %-10s=   %.5f     %s\n','turn_rad.',  input.avl.mach,     input.mass.Lunit);
-fprintf(fid,' %-10s=   %.5f     %s\n','load_fac.',  input.avl.mach,     '');
-fprintf(fid,' %-10s=   %.5f     %s\n','X_cg',       input.avl.xref,     input.mass.Lunit);        
-fprintf(fid,' %-10s=   %.5f     %s\n','Y_cg',       input.avl.yref,     input.mass.Lunit);
-fprintf(fid,' %-10s=   %.5f     %s\n','Z_cg',       input.avl.zref,     input.mass.Lunit);
+fprintf(fid,' %-10s=   %.5f     %s\n','bank',       input.run.bank,     'deg');  
+fprintf(fid,' %-10s=   %.5f     %s\n','elevation',  input.run.elevation,'deg');
+fprintf(fid,' %-10s=   %.5f     %s\n','heading',    input.run.heading,  'deg');
+fprintf(fid,' %-10s=   %.5f     %s\n','Mach',       input.avl.Mach,     '');
+fprintf(fid,' %-10s=   %.5f     %s\n','velocity',   input.run.velocity, [input.mass.Lunit '/' input.mass.Tunit]);
+fprintf(fid,' %-10s=   %.5f     %s\n','density',    input.run.rho,      [input.mass.Munit '/' input.mass.Tunit '^3']);
+fprintf(fid,' %-10s=   %.5f     %s\n','grav.acc.',  input.run.g,        [input.mass.Lunit '/' input.mass.Tunit '^2']);
+fprintf(fid,' %-10s=   %.5f     %s\n','turn_rad.',  input.run.turn_rad, input.mass.Lunit);
+fprintf(fid,' %-10s=   %.5f     %s\n','load_fac.',  input.run.load_fac, '');
+fprintf(fid,' %-10s=   %.5f     %s\n','X_cg',       input.avl.Xref,     input.mass.Lunit);        
+fprintf(fid,' %-10s=   %.5f     %s\n','Y_cg',       input.avl.Yref,     input.mass.Lunit);
+fprintf(fid,' %-10s=   %.5f     %s\n','Z_cg',       input.avl.Zref,     input.mass.Lunit);
 fprintf(fid,' %-10s=   %.5f     %s\n','mass',       1,                  input.mass.Munit);
 fprintf(fid,' %-10s=   %.5f     %s\n','Ixx',        1,                  [input.mass.Munit '-' input.mass.Lunit '^2']);
 fprintf(fid,' %-10s=   %.5f     %s\n','Iyy',        1,                  [input.mass.Munit '-' input.mass.Lunit '^2']);
@@ -150,8 +131,9 @@ fclose(fid);
 %% Remove Existing Output Files
 % Commands below do not consider the .st overwrite command
 
-if ~isempty(dir(fullfile(dirName,'*.st')))
-    delete(fullfile(dirName,'*.st'))
+% TODO: use fullfile everywhere
+if ~isempty(dir(fullfile(path,name,'*.st')))
+    delete(fullfile(path,name,'*.st'))
     fprintf('%-20s %s\n','Setup:','.ST Files Exist and Removed');
 else
     fprintf('%-20s %s\n','Setup:','.ST Files Do Not Exist');    
@@ -160,10 +142,10 @@ end
 %% Write AVL Command File
 
 % Open the file with write permission
-fid = fopen('command.txt', 'w');
+fid = fopen('tmp/command.txt', 'w');
 
 % Load the AVL definition of the aircraft
-fprintf(fid, 'LOAD %s\n', [fileName,'.avl']);
+fprintf(fid, 'LOAD %s\n', name);
 
 % Load mass parameters - TODO: incorporate into reset.txt!
 % fprintf(fid, 'MASS %s\n', [fileName,'.mass']);
@@ -180,7 +162,8 @@ fprintf(fid, '%s\n',   'OPER');
 
 nA = length(sweep.alpha);
 nB = length(sweep.beta);
-nS = length(surfName);
+nD = length(ctrlNames);
+nS = length(sweep.surf);
 
 for iA = 1:nA
     
@@ -191,16 +174,16 @@ for iA = 1:nA
 %         fprintf(fid, '%s\n',   'V');
 %         fprintf(fid, '%s\n',   [sweep.beta(iB) ' -90']);
         
-        for iS = 1:nS
+        for iS = 1:nS % sweep surface
             
-            nD = length(sweep.surf.(['D' num2str(iS)]));
+%             nD = length(sweep.surf.(['D' num2str(iS)]));
 
             for iD = 1:nD
                 
                 % Specify file name parameters
                 angName  = sprintf('A_%+i B_%+i', sweep.alpha(iA), sweep.beta(iB));
-                surfName = sprintf(' D%i_+0',1:nS);
-                caseName = sprintf('%s %s%s', avlFileName, angName, surfName);
+                surfName = sprintf(' D%i_+0',1:nD);
+                caseName = sprintf('%s %s%s', name, angName, surfName);
                 
                 % Load reset.txt run file to zero deflections (& other vars)
                 fprintf(fid, '%s\n',   'f');
@@ -213,14 +196,14 @@ for iA = 1:nA
                 fprintf(fid, 'B B %f\n',sweep.beta(iB));
                 
                 % Acquire deflection value within surface structure
-                deflValue = sweep.surf.(['D' num2str(iS)])(iD);
+%                 deflValue = sweep.surf.(['D' num2str(iD)])(iD);
                 
                 % Set deflection
-                fprintf(fid, 'D%i D%i %i\n',iS, iS, deflValue);
+                fprintf(fid, 'D%i D%i %i\n',iD, iD, sweep.surf(iS)); %deflValue
 
                 % String Replace D#_#
-                expr        = sprintf('D%i_\\+0', iS);
-                repstr      = sprintf('D%i_%+i', iS, deflValue);
+                expr        = sprintf('D%i_\\+0', iD);
+                repstr      = sprintf('D%i_%+i', iD, sweep.surf(iS)); %deflValue
                 caseName    = regexprep(caseName, expr, repstr);
                                 
                 % Init case
@@ -231,7 +214,7 @@ for iA = 1:nA
 
                 % Save the st data
                 fprintf(fid, '%s\n',   'st');
-                fprintf(fid, '%s\n', fullfile(dirName,[caseName,'.st']));
+                fprintf(fid, '%s\n', fullfile('..','out',name,[caseName,'.st']));
                 
             end
         end
@@ -246,5 +229,10 @@ fprintf(fid, 'Quit\n');
 fclose(fid);
 
 %% Execute Run
-% [status,result] = dos('avl.exe < command.txt &'); %,'-echo');
-evalin('base','!avl.exe < command.txt');
+cd avl
+% [status,result] = dos('avl\avl.exe < tmp\command.txt &'); %,'-echo');
+evalin('base','!avl.exe < ..\tmp\command.txt');
+
+%% Read .ST
+% TODO - scan .st file
+% TODO - fix .st file names, they don't match the deflections issued
