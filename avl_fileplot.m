@@ -1,7 +1,11 @@
-function avl_fileplot(input,method)
+function avl_fileplot(input,plot_method)
 
-if strcmpi(method,'avl')
+if strcmpi(plot_method,'avl')
     %% Write AVL Command File
+    
+    % TODO: The idea was to use AVL's geometry plot command and place
+    %       its output in a GUI window, but I don't have an elegant way
+    %       to do it...
     
     % Open the file with write permission
     fid = fopen('plot.txt', 'wt');
@@ -36,21 +40,87 @@ if strcmpi(method,'avl')
     % [status,result] = dos('avl.exe < plot.txt &'); %,'-echo');
     evalin('base','!avl.exe < plot.txt');
     
-elseif strcmpi(method,'matlab')
+elseif strcmpi(plot_method,'matlab')
     
 figure %('Color',[0 0 0])
 hold all
 
 % Place CG Marker
-XCG = input.Xref;
-YCG = input.Yref;
-ZCG = input.Zref;
-plot3(XCG,YCG,ZCG,'.k','MarkerSize',20)
+XCG = input.header.Xref;
+YCG = input.header.Yref;
+ZCG = input.header.Zref;
+plot3(XCG,YCG,ZCG,'.k','MarkerSize',20);
+h(1) = gca;
 
+if isfield(input,'body')
+    if isfield(input.body,'Bfile')
+               
+        % Get translation values
+        XT = input.body.Trans(1);
+        XB = input.body.Bfile_X+XT;
+        
+        YT = input.body.Trans(2);
+        YB = input.body.Bfile_Y+YT;
+        
+        ZT = input.body.Trans(3);
+        ZB = zeros(length(YB))+ZT;
+        
+        % TODO: allow even #'s of length(XB) only
+        for i=1:(length(XB)/2)
+            
+            % Diameter and Radius
+            D(i) = abs(YB(i)) + abs(YB(end-i));
+            R(i) = D(i)/2;
+            
+            % Centerline
+            CL_X(i) = XB(i);
+            CL_Y(i) = YT;
+            CL_Z(i) = ZT;
+           
+            % AVL assumed a circular fuselage cross-section
+            theta = 0:pi/8:2*pi;
+            X = CL_X(i) * ones(size(theta));
+            Y = CL_Y(i) + R(i).*cos(theta); % 'X'
+            Z = CL_Z(i) + R(i).*sin(theta); % 'Y'
+            
+            % Plot every other fuse x-sec to keep from bogging down plot
+            if mod(i,2) == 1
+                plot3(X,Y,Z,'-m')
+            end
+        end
+        
+        plot3(CL_X,CL_Y,CL_Z,'-r')
+        plot3(XB,YB,ZB,'-g')
+
+        % TODO: specify handle title to the body name
+        
+    else
+        error('Did not detect any Body shape file. Cannot plot Body.')
+    end
+
+else
+    warning('Did not detect any body within AVL file input.')
+end
+
+if isfield(input,'surface')
     surfaces = fieldnames(input.surface);
+else
+    keyboard
+    error('Did not detect any surfaces within AVL file input.')
+end
+
     for i = 1:length(surfaces)
         fprintf('%s\n',surfaces{i});
         for j = 1:length(input.surface.(surfaces{i}).SECTION)
+            
+            % If surface angle incidence is specified, capture it to be
+            % applied later for Z coordinate calculation
+            if isfield(input.surface.(surfaces{i}),'dAinc')
+                dAinc = input.surface.(surfaces{i}).dAinc;
+            else
+                dAinc = 0;
+            end
+            
             for k = 1:length(input.surface.(surfaces{i}).SECTION.Xle)
                 % AVL axes are different than aircraft axes
                 % X Y Z [AC] = -X Y -Z [AVL]
@@ -70,7 +140,8 @@ plot3(XCG,YCG,ZCG,'.k','MarkerSize',20)
                                 
                 ZT = input.surface.(surfaces{i}).Trans(3);
                 Z1{i}(j,k) = input.surface.(surfaces{i}).SECTION.Zle(k)+ZT;
-                Z2{i}(j,k) = (X2{i}(j,k)-X1{i}(j,k))*sind(input.surface.(surfaces{i}).SECTION.Ainc(k))+ZT+Z1{i}(j,k);
+                ANGLE = input.surface.(surfaces{i}).SECTION.Ainc(k)+dAinc;
+                Z2{i}(j,k) = (X2{i}(j,k)-X1{i}(j,k))*sind(ANGLE)+ZT+Z1{i}(j,k);
                 
                 Z  = [Z1{i}(j,k),Z2{i}(j,k)];
                 
@@ -103,34 +174,31 @@ plot3(XCG,YCG,ZCG,'.k','MarkerSize',20)
                 H{i}(6) = plot3(X2{i},-Y2{i},Z2{i},'-g');
             end
             
-            % Axis Properties
+            %% Set Axis Properties
             view(3);
             axis equal
             xlabel('x'),ylabel('y'),zlabel('z')
             
         end
-        
-        % Rotate if dAinc specified
-        if isfield(input.surface.(surfaces{i}),'dAinc')
-            if input.surface.(surfaces{i}).dAinc ~= 0
-                rotate(H{i},[0 1 0],input.surface.(surfaces{i}).dAinc)
-            end
-        end
-        
     end
-        
-    ORIGIN = min(str2num(get(gca,'YTickLabel')))*1.2;
+    
+    %% Plot X,Y,Z Arrows
+
+    % Make new axes
+    h(2) = axes('Position',[0.05 0.05 0.1 0.1]);
+    hold all,  axis equal, axis off,
+    linkprop(h,'View'); % syncronize views
     
     % Arrow Shaft
-    plot3([0 5],ORIGIN+[0 0],[0 0],'-r')
-    plot3([0 0],ORIGIN+[0 5],[0 0],'-r')
-    plot3([0 0],ORIGIN+[0 0],[0 5],'-r')
+    plot3([0 1],[0 0],[0 0],'-r')
+    plot3([0 0],[0 1],[0 0],'-r')
+    plot3([0 0],[0 0],[0 1],'-r')
     
     % Labels
-    text(7,ORIGIN,0,    'X','Color','r')
-    text(0,ORIGIN+7,0,  'Y','Color','r')
-    text(0,ORIGIN,7,    'Z','Color','r')
+    text(1,0,0,' X','Color','r')
+    text(0,1,0,' Y','Color','r')
+    text(0,0,1,' Z','Color','r')
     
 else
-    error('Unrecognized method.')
+    error('Unrecognized plot_method.')
 end

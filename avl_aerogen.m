@@ -9,6 +9,7 @@ clc, clear all, close all, format compact
 
 %% File Setup
 avlFileName = './avl/bd.avl';                         %TODO: dir(*.avl)
+% avlFileName = './avl/d81.avl';    
 [path,name,ext] = fileparts(avlFileName);
 
 if ~exist(['./out/' name],'dir')
@@ -28,7 +29,7 @@ input = avl_fileread(avlFileName);
 %% Plot Geometry using AVL
 % avl_fileplot('avl')
 avl_fileplot(input.avl,'matlab')
-
+keyboard
 %% Run Setup
 sweep.alpha     = -4:4:4;   %alpha 
 sweep.beta      = -6:6:6;   %beta
@@ -236,3 +237,17 @@ evalin('base','!avl.exe < ..\tmp\command.txt');
 %% Read .ST
 % TODO - scan .st file
 % TODO - fix .st file names, they don't match the deflections issued
+
+% TODO - Object Geometry     Should effector be separate from component?
+        % prop - wing
+        % prop - fuse
+        % prop - horizontal
+        % prop - vertical
+        % method - plot goemetry?
+        % method - make u vector?
+        
+% TODO - Obect Aerodynamics
+        % prop - coefficient
+        % method - static margin?
+        % method - plot derivatives?
+        % method - make state space A & B matrices
