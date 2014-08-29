@@ -42,7 +42,7 @@ if strcmpi(plot_method,'avl')
     
 elseif strcmpi(plot_method,'matlab')
     
-figure %('Color',[0 0 0])
+figure('Color',[1 1 1])
 hold all
 
 % Place CG Marker
@@ -68,8 +68,8 @@ if isfield(input,'body')
         % TODO: allow even #'s of length(XB) only
         for i=1:(length(XB)/2)
             
-            % Diameter and Radius
             D(i) = abs(YB(i)) + abs(YB(end-i));
+            % Diameter and Radius
             R(i) = D(i)/2;
             
             % Centerline
@@ -176,7 +176,7 @@ end
             
             %% Set Axis Properties
             view(3);
-            axis equal
+            axis equal, grid on
             xlabel('x'),ylabel('y'),zlabel('z')
             
         end

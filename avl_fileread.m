@@ -151,13 +151,13 @@ while eval_num <= length(eval_line)
                 input.avl.body.Bfile = strtrim(tline);
                 
                 try
-                    
+
                     % Assumes Body .dat file is stored in ./avl fldr
                     Bfilefull = ['./avl/' input.avl.body.Bfile];
                     
-                    if exist(Bfilefull,'file')
+                    if exist(Bfilefull,'file')==2
                         fid2 = fopen(Bfilefull);
-                        C = textscan(fid2, '%f %f\n','HeaderLines',1);
+                        C = textscan(fid2, '%f %f','HeaderLines',1);
                         fclose(fid2);
                         
                         % Read the documentation for body file specification:
@@ -322,6 +322,8 @@ while eval_num <= length(eval_line)
         
         % Read NACA Airfoil specification
         input.avl.surface.(surf_name).SECTION.NACA(1,sect_num) = textscan(tline,'%f');
+        
+        % TODO: plot NACA??? 
         
     elseif strcmpi(strtrim(tline),'AIRFOIL')
         

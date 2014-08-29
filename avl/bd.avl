@@ -29,37 +29,63 @@ SCALE
 1.0  1.0  1.0
 TRANSLATE
 3.41  0.0  0.0
+
 #----------------------------------
 #    Xle         Yle         Zle         chord       angle   Nspan  Sspace
 SECTION
     -3.41        0.0         0.0        10.5         0.0     7   0.25
+	
+#Cname   Cgain  Xhinge  HingeVec    SgnDup
+CONTROL
+flap     1.0  	0.685 	0. 0. 0.  	+1		
+#TODO multiple CONTROLS per section
+
 AFIL
 ag35.dat
+
 #---------------------------
 SECTION
     -3.25        18.0        0.0        10.0         0.0    11  -2.70
+
+#Cname   Cgain  Xhinge  HingeVec    SgnDup
+CONTROL
+flap     1.0  	0.685 	0. 0. 0.  	+1
+
 AFIL
 ag35.dat
+
 #---------------------------
 SECTION
     -2.500       41.66       4.25        8.0        -1.0    11  -2.25
 AFIL
 ag36.dat
+
 #---------------------------
 SECTION
     -1.788       55.75       9.38        5.50       -1.0    1   0
 AFIL
 ag37.dat
+
 #---------------------------
 SECTION
     -0.95        57.64      10.064       4.4        -1.0    1   0
 AFIL
 ag37.dat
+
+#Cname 	Cgain  	Xhinge  HingeVec    SgnDup
+CONTROL
+aileron -1.0  	0.80  	0. 0. 0.  	-1
+
 #---------------------------
 SECTION
      0.000       58.3       10.40        3.375      -1.0    1   0
 AFIL
 ag37.dat
+
+#Cname 	Cgain  	Xhinge  HingeVec  	SgnDup
+CONTROL
+aileron -1.0  	0.80  	0. 0. 0.  	-1
+
 #
 #=============================================
 SURFACE
