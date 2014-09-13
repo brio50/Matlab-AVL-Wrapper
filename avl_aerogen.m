@@ -254,8 +254,12 @@ cd avl
 evalin('base','!avl.exe < ..\tmp\command.txt');
 
 %% Read .ST
-% TODO - scan .st file
+cd ..
+output = st_fileread(['./out/' name]);
 % TODO - verify .st file names, they don't match the deflections issued
+
+%% Plot .ST
+st_fileplot(output)
 
 %% Object Oriented
 % TODO - Object Geometry     Should effector be separate from component?

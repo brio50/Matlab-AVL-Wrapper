@@ -13,7 +13,7 @@ function input = avl_fileread(avlFileName)
 %% Read from File
 
 % Open file for reading
-fid     = fopen(avlFileName,'r');
+fid   = fopen(avlFileName,'r');
 tline = fgetl(fid);
 
 % Initialize Counters
