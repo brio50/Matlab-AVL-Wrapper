@@ -43,7 +43,6 @@ for iFile = 1:length(fileNames)
     isCtrl = regexp(C{:},'^d\d');
     for iLine = 1:length(isCtrl)
         if ~isempty(isCtrl{iLine})
-%             ctrl.(C{:}{iLine-1}) = C{:}{iLine}; % assign as char
             output.avl.st(iFile).(C{:}{iLine}) = C{:}{iLine-1};
         end
     end    
@@ -62,9 +61,9 @@ for iFile = 1:length(fileNames)
             
             % corresponding values succeed equal sign
             st_value = str2double(C{:}{iLine+1});
-            
             output.avl.st(iFile).(st_variable) = st_value;
             
+            %Note: "Clb Cnr / Clr Cnb" not captured correctly
         end        
     end
     

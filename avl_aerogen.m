@@ -31,7 +31,7 @@ input = avl_fileread(avlFileName);
 avl_fileplot(input.avl,'matlab')
 
 %% Run Setup
-sweep.alpha         = -4:4:4;   %alpha 
+sweep.alpha         = -6:1:12;   %alpha 
 sweep.beta          = -6:6:6;   %beta
 sweep_surf_default  = '-5:5:5';   %default surface sweep values
 
@@ -194,8 +194,8 @@ for iA = 1:nA
             for iD = 1:nD
                 
                 % Specify file name parameters, surfName/deflValues will be regexprep'd later on...
-                angName  = sprintf('A_%+i B_%+i', sweep.alpha(iA), sweep.beta(iB));
-                surfName = sprintf(' D%i_+0',1:nS);
+                angName  = sprintf('A%+i B%+i', sweep.alpha(iA), sweep.beta(iB));
+                surfName = sprintf(' D%i+0',1:nS);
                 % TODO: make provisions for 253 character limit for filenames
 %                 caseName = sprintf('%s%s %s%s', name, ext, angName, surfName);
                 caseName = sprintf('%s -- %s%s', name, angName, surfName);
@@ -217,8 +217,8 @@ for iA = 1:nA
                 fprintf(fid, 'D%i D%i %i\n',iS, iS, deflValue);
 
                 % String Replace D#_#
-                expr        = sprintf('D%i_\\+0', iS);
-                repstr      = sprintf('D%i_%+i', iS, deflValue);
+                expr        = sprintf('D%i\\+0', iS);
+                repstr      = sprintf('D%i%+i', iS, deflValue);
                 caseName    = regexprep(caseName, expr, repstr);
                                 
                 % Init case
@@ -251,15 +251,20 @@ fclose(fid);
 %% Execute Run
 cd avl
 % [status,result] = dos('avl\avl.exe < tmp\command.txt &'); %,'-echo');
-evalin('base','!avl.exe < ..\tmp\command.txt');
+% evalin('base','!avl.exe < ..\tmp\command.txt');
 
 %% Read .ST
 cd ..
-output = st_fileread(['./out/' name]);
+st_output = st_fileread(['./out/' name]);
 % TODO - verify .st file names, they don't match the deflections issued
 
-%% Plot .ST
-st_fileplot(output)
+%% Write Aero Database
+
+aero_db = aero_filewrite(st_output);
+
+%% Plot Aero Database
+
+aero_fileplot(aero_db)
 
 %% Object Oriented
 % TODO - Object Geometry     Should effector be separate from component?

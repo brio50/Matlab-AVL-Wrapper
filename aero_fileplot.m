@@ -42,44 +42,43 @@ if exist('ext','var') == 1
 end
 
 %% SORT 
-varname = fieldnames(data.avl.st);
 
-% CONTROL surface names appear between "e" and "CLa"
-for iVar = 1:length(varname)
-    if strcmp(varname{iVar},'e')
-        i_start = iVar+1;
-    elseif strcmp(varname{iVar},'CLa')
-        i_end = iVar-1;
-    end
+% Collect all of the aerodynamic table fieldnames
+aeroFieldNames = fieldnames(data); 
+isCoef = ~cellfun('isempty',regexp(aeroFieldNames,'^C','match'));
+aeroFieldNames = aeroFieldNames(isCoef);
+
+% Delete Cref from coefNames list, it's not a coefficient
+if strcmp(aeroFieldNames{1},'Cref')
+    aeroFieldNames(1) = []; 
 end
 
-ctrlNames = varname(i_start:i_end);
+isCtrlCoef = ~cellfun('isempty',regexp(aeroFieldNames,'_d\d_','match'));
+aeroCtrlFieldNames = aeroFieldNames(isCtrlCoef);
 
-for iCtrl = 1:length(ctrlNames)
-    [ctrl.(ctrlNames{iCtrl}).data,m,n] = unique([data.avl.st.(ctrlNames{iCtrl})]);
-    ctrl.(ctrlNames{iCtrl}).m = m;
-    ctrl.(ctrlNames{iCtrl}).n = n;
-end
+isCLtot = ~cellfun('isempty',regexp(aeroCtrlFieldNames,'CLtot','match'));
+zbp_name = strrep(aeroCtrlFieldNames(isCLtot),'CLtot_','');
 
-keyboard
+isStabCoef = cellfun('isempty',regexp(aeroFieldNames,'_d\d_','match'));
+aeroStabFieldNames = aeroFieldNames(isStabCoef);
 
-for iA = 1:length(A)
-   for iB = 1:length(B)
-       for iD = 1:length(D)
-       end
-   end
-end
-
-%% PLOT
-figure('Color',[1 1 1])
+%% PLOT Stability Coefs
+fig = figure('Color',[1 1 1]);
 n = 2;
 m = 3;
 
 for iSub = 1:m*n
-    ax(iSub) = subplot(n,m,1);
+    ax(iSub) = subplot(n,m,iSub);
     
-    h(iSub) = plot();
-    
+    h(iSub) = surf( data.(aeroStabFieldNames{iSub}).xbp_data,...
+                    data.(aeroStabFieldNames{iSub}).ybp_data,...
+                    data.(aeroStabFieldNames{iSub}).data');
+                
+    xlabel(data.(aeroStabFieldNames{iSub}).xbp_name,'Interpreter','none');
+    ylabel(data.(aeroStabFieldNames{iSub}).ybp_name,'Interpreter','none');
+    zlabel(aeroStabFieldNames{iSub},'Interpreter','none')
+   
+    axis tight
 end
 
 %GOAL: allow selectable (in)dependent vars
@@ -88,6 +87,44 @@ end
 %GOAL: view incremental 
 %GOAL: 2D and 3D options: alpha, beta, defl
 
+set(ax,'View',[-37.5,30])
+
+% Link 3D Rotation
+% hlink = linkprop(ax,{'CameraPosition','CameraUpVector'});
+% key = 'graphics_linkprop';
+% % Store link object on first subplot axes
+% setappdata(fig,key,hlink);
+
+%% PLOT Control Coefs for one Sideslip
+
+n = 2;
+m = 2;
+
+beta = 0;
+b0 = find(data.CLtot_d1_flap.zbp_data==beta);
+
+for iCoef = 1:length(aeroStabFieldNames)
+    
+    fig = figure('Color',[1 1 1],'Name',[aeroStabFieldNames{iCoef} ' - BETA = ' num2str(beta)]);
+    
+    for iSurf = 1:length(zbp_name)
+        
+        ax(iSurf) = subplot(n,m,iSurf);
+        
+        h(iSurf) = surf(    data.([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}]).xbp_data,...
+                            data.([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}]).zbp_data,...
+                            squeeze(data.([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}]).data(:,b0,:))');
+        
+        xlabel(data.([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}]).xbp_name,'Interpreter','none');
+        ylabel(data.([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}]).zbp_name,'Interpreter','none');
+        zlabel([aeroStabFieldNames{iCoef} '_' zbp_name{iSurf}],'Interpreter','none')
+        
+        axis tight
+    end
+    
+    set(ax,'View',[-37.5,30])
+    
+end
 
 
 end
