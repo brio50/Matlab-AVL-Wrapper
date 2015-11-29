@@ -1,4 +1,11 @@
-function avl_fileplot(input,plot_method)
+function [f,h,ax,t] = avl_fileplot(input,plot_method)
+%   h = figure handle for all plot elements
+%   t = transform object, used to manipulate alpha and beta during run
+%
+f = [];
+h = [];
+ax = [];
+t = [];
 
 if strcmpi(plot_method,'avl')
     %% Write AVL Command File
@@ -42,15 +49,27 @@ if strcmpi(plot_method,'avl')
     
 elseif strcmpi(plot_method,'matlab')
     
-figure('Color',[1 1 1])
+f = figure('Color',[1 1 1],'WindowStyle','docked');
+
+%% Wrapper Axes
+ax(1) = axes('Position',[0.05 0.05 0.9 0.9]);
+set(ax(1),'Color','none','Xtick',[],'Ytick',[],'Xlabel',[],'Ylabel',[])
+title('Airplane Name')
+box on
+    
+%% Isometric View
+ax(2) = axes('Position',[0.5 0.5 0.45 0.45]);
+set(get(ax(2),'Title'),'String','Isometric','Color',[1 1 1])
 hold all
+
+t = hgtransform; 
 
 % Place CG Marker
 XCG = input.header.Xref;
 YCG = input.header.Yref;
 ZCG = input.header.Zref;
-plot3(XCG,YCG,ZCG,'.k','MarkerSize',20);
-h(1) = gca;
+h(1) = plot3(XCG,YCG,ZCG,'.k','MarkerSize',20,'Parent',t);
+set(h(1),'DisplayName','cg');
 
 if isfield(input,'body')
     if isfield(input.body,'Bfile')
@@ -63,7 +82,7 @@ if isfield(input,'body')
         YB = input.body.Bfile_Y+YT;
         
         ZT = input.body.Trans(3);
-        ZB = zeros(length(YB))+ZT;
+        ZB = zeros(length(YB),1)+ZT;
         
         % TODO: allow even #'s of length(XB) only
         for i=1:(length(XB)/2)
@@ -85,13 +104,16 @@ if isfield(input,'body')
             
             % Plot every other fuse x-sec to keep from bogging down plot
             if mod(i,2) == 1
-                plot3(X,Y,Z,'-m')
+                h(end+1) = plot3(X,Y,Z,'-m','Parent',t);
+                set(h(end),'DisplayName',sprintf('body_station_%d',i));
             end
         end
         
-        plot3(CL_X,CL_Y,CL_Z,'-r')
-        plot3(XB,YB,ZB,'-g')
-
+        h(end+1) = plot3(CL_X,CL_Y,CL_Z,'-r','Parent',t);
+        set(h(end),'DisplayName','center_line');
+        h(end+1) = plot3(XB,YB,ZB,'-g','Parent',t);
+        set(h(end),'DisplayName','body_line');
+        
         % TODO: specify handle title to the body name
         
     else
@@ -146,11 +168,13 @@ end
                 Z  = [Z1{i}(j,k),Z2{i}(j,k)];
                 
                 %% Plot Chordwise
-                H{i}(1) = plot3(X,Y,Z,'-m');
+                h(end+1) = plot3(X,Y,Z,'-m','Parent',t);
+                set(h(end),'DisplayName','wing_chord_lines')
                 
                 % Plot if Y Duplicate specified
                 if input.surface.(surfaces{i}).Ydupl == 0
-                    H{i}(2) = plot3(X,-Y,Z,'-m');
+                    h(end+1) = plot3(X,-Y,Z,'-m','Parent',t);
+                    set(h(end),'DisplayName','wing_chord_lines_ydup')
                 end
                 
             end
@@ -159,19 +183,23 @@ end
             %% Plot Outer Mold Lines
             
             % Leading Edge
-            H{i}(3) = plot3(X1{i},Y1{i},Z1{i},'-g');
+            h(end+1) = plot3(X1{i},Y1{i},Z1{i},'-g','Parent',t);
+            set(h(end),'DisplayName','wing_leading_edge')
             
             % Plot if Y Duplicate specified
             if input.surface.(surfaces{i}).Ydupl == 0
-                H{i}(4) = plot3(X1{i},-Y1{i},Z1{i},'-g');
+                h(end+1) = plot3(X1{i},-Y1{i},Z1{i},'-g','Parent',t);
+                set(h(end),'DisplayName','wing_leading_edge_ydup')
             end
             
             % Trailing Edge
-            H{i}(5) = plot3(X2{i},Y2{i},Z2{i},'-g');
+            h(end+1) = plot3(X2{i},Y2{i},Z2{i},'-g','Parent',t);
+            set(h(end),'DisplayName','wing_trailing_edge')
             
             % Plot if Y Duplicate specified
             if input.surface.(surfaces{i}).Ydupl == 0
-                H{i}(6) = plot3(X2{i},-Y2{i},Z2{i},'-g');
+                h(end+1) = plot3(X2{i},-Y2{i},Z2{i},'-g','Parent',t);
+                set(h(end),'DisplayName','wing_trailing_edge_ydup')
             end
             
             %% Set Axis Properties
@@ -185,19 +213,41 @@ end
     %% Plot X,Y,Z Arrows
 
     % Make new axes
-    h(2) = axes('Position',[0.05 0.05 0.1 0.1]);
-    hold all,  axis equal, axis off,
-    linkprop(h,'View'); % syncronize views
+    ax(3) = axes('Position',[0.85 0.85 0.1 0.1]);
+    set(get(ax(3),'Title'),'String','Body Coordinate Display','Color',[1 1 1])
+    hold all, axis equal, axis off,
+    linkprop([ax(2) ax(3)],'View'); % syncronize views
     
     % Arrow Shaft
-    plot3([0 1],[0 0],[0 0],'-r')
-    plot3([0 0],[0 1],[0 0],'-r')
-    plot3([0 0],[0 0],[0 1],'-r')
+    plot3([0 1],[0 0],[0 0],'-r','DisplayName','x_body')
+    plot3([0 0],[0 1],[0 0],'-r','DisplayName','y_body')
+    plot3([0 0],[0 0],[0 1],'-r','DisplayName','z_body')
     
     % Labels
     text(1,0,0,' X','Color','r')
     text(0,1,0,' Y','Color','r')
     text(0,0,1,' Z','Color','r')
+    
+    %% Top View
+    ax(4) = axes('Position',[0 0.5 0.45 0.45]);
+    set(get(ax(4),'Title'),'String','Top','Color',[1 1 1])
+    copyobj(h,ax(4))
+    axis equal, axis off
+    view([0 0 1])
+    
+    %% Front View
+    ax(5) = axes('Position',[0.5 0 0.45 0.45]);
+    set(get(ax(5),'Title'),'String','Front','Color',[1 1 1])
+    copyobj(h,ax(5))
+    axis equal, axis off
+    view([1 0 0])
+    
+    %% Side View
+    ax(6) = axes('Position',[0 0 0.45 0.45]);
+    set(get(ax(6),'Title'),'String','Side','Color',[1 1 1]);
+    copyobj(h,ax(6))
+    axis equal, axis off
+    view([0 -1 0])
     
 else
     error('Unrecognized plot_method.')

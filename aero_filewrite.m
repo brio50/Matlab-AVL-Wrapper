@@ -164,8 +164,8 @@ for iFile = 1:length(data.avl.st)
 %             error('THIS IS NOT CORRECT AT THE MOMENT, NEED TO SUBTRACT NEUTRAL POSITIONS FROM THESE!')
             aero.([coefName{iCoef} '_' zbp_name{iSurf}]).data(iAlpha,iBeta,iDefl) = data.avl.st(iFile).(coefName{iCoef});
         end
-        keyboard
-        aero
+%         keyboard
+%         aero
     end
 end
 

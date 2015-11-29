@@ -28,7 +28,12 @@ input = avl_fileread(avlFileName);
 
 %% Plot Geometry using AVL
 % avl_fileplot('avl')
-avl_fileplot(input.avl,'matlab')
+[~,~,~,t] = avl_fileplot(input.avl,'matlab');
+% TODO - object/class/method to handle alpha and beta xform
+%
+% rotate_alph = makehgtform('yrotate',ALPHA*(pi/180));
+% rotate_beta = makehgtform('zrotate',BETA*(pi/180));
+% t.Matrix = rotate_alph*rotate_beta;
 
 %% Run Setup
 sweep.alpha         = -6:1:12;   %alpha 
