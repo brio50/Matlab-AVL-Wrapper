@@ -254,9 +254,8 @@ fprintf(fid, 'Quit\n');
 fclose(fid);
 
 %% Execute Run
-cd avl
-% [status,result] = dos('avl\avl.exe < tmp\command.txt &'); %,'-echo');
-% evalin('base','!avl.exe < ..\tmp\command.txt');
+
+avl('tmp/command.txt');
 
 %% Read .ST
 cd ..

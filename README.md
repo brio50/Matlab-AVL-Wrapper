@@ -1,4 +1,4 @@
-Matlab-AVL-Wrapper
+MATLAB-AVL-Wrapper
 ==================
 The goal is to create a Matlab wrapper for AVL that generates an aero table for any given .avl file; the idea is to reproduce a wind tunnel simulation with alpha, beta, and deflection sweeps.
 
